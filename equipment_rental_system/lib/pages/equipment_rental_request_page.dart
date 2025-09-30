@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class EquipmentRentalRequestPage extends StatefulWidget {
@@ -40,20 +38,8 @@ class _EquipmentRentalRequestPageState extends State<EquipmentRentalRequestPage>
   }
 
   Future<void> _sendRentalRequest() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    await FirebaseFirestore.instance.collection('equipment_requests').add({
-      'userId': user.uid,
-      'equipmentId': widget.equipmentId,
-      'equipmentName': widget.equipmentData['name'],
-      'unit': _selectedUnit,
-      'quantity': _quantity,
-      'price': widget.equipmentData['price'],
-      'totalPrice': _totalPrice,
-      'status': 'pending',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    // Placeholder: simulate sending request without Firebase
+    await Future.delayed(const Duration(milliseconds: 300));
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

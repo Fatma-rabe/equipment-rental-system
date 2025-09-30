@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'admin_messages_page.dart';
 
@@ -9,26 +8,24 @@ class AdminChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('محادثات المستخدمين')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Builder(
+        builder: (context) {
+          // Placeholder static list of users
+          final users = [
+            {'id': 'u1', 'email': 'user1@example.com'},
+            {'id': 'u2', 'email': 'user2@example.com'},
+          ];
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (users.isEmpty) {
             return const Center(child: Text('لا يوجد مستخدمين.'));
           }
-
-          final users = snapshot.data!.docs;
 
           return ListView.builder(
             itemCount: users.length,
             itemBuilder: (context, index) {
               final userDoc = users[index];
-              final userId = userDoc.id;
-              final userData = userDoc.data() as Map<String, dynamic>;
-              final userEmail = userData['email'] ?? 'بلا بريد';
+              final userId = userDoc['id'] as String;
+              final userEmail = userDoc['email'] ?? 'بلا بريد';
 
               return ListTile(
                 title: Text(userEmail),

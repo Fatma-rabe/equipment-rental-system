@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'admin_reply_page.dart';
 
@@ -19,30 +18,14 @@ class AdminMessagesPage extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('messages')
-                  .where('senderId', isEqualTo: userId)
-                  .orderBy('timestamp')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-                final messages = snapshot.data!.docs;
-
-                return ListView.builder(
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final msg = messages[index].data() as Map<String, dynamic>;
-                    return ListTile(
-                      title: Text(msg['message'] ?? ''),
-                      subtitle: Text(msg['timestamp']?.toDate().toString() ?? ''),
-                    );
-                  },
-                );
+            child: ListView.builder(
+              itemCount: 0,
+              itemBuilder: (context, index) {
+                return const SizedBox.shrink();
               },
             ),
           ),
+
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton.icon(

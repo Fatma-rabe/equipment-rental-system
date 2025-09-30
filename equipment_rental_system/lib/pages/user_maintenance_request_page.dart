@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class MaintenanceRequestPage extends StatefulWidget {
@@ -14,20 +12,13 @@ class _MaintenanceRequestPageState extends State<MaintenanceRequestPage> {
   final descriptionController = TextEditingController();
 
   void sendRequest() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-
     if (equipmentController.text.isEmpty || descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("يرجى إدخال كل البيانات")));
       return;
     }
 
-    await FirebaseFirestore.instance.collection('maintenance_requests').add({
-      'userId': userId,
-      'equipmentName': equipmentController.text.trim(),
-      'description': descriptionController.text.trim(),
-      'status': 'pending',
-      'createdAt': Timestamp.now(),
-    });
+    // Placeholder: simulate sending request without Firebase
+    await Future.delayed(const Duration(milliseconds: 300));
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("تم إرسال طلب الصيانة")));
 

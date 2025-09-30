@@ -1,38 +1,32 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AdminItemRequestsPage extends StatelessWidget {
   const AdminItemRequestsPage({super.key});
 
   void updateRequestStatus(String requestId, String status) {
-    FirebaseFirestore.instance.collection('item_requests').doc(requestId).update({
-      'status': status,
-    });
+    // Placeholder: simulate update
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('طلبات الأصناف')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('item_requests')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+      body: Builder(builder: (context) {
+        // Placeholder static list
+        final requests = [
+          {'id': 'r1', 'itemName': 'أسمنت', 'quantity': 2, 'totalPrice': 100, 'status': 'pending'},
+          {'id': 'r2', 'itemName': 'حديد', 'quantity': 1, 'totalPrice': 120, 'status': 'pending'},
+        ];
 
-          final requests = snapshot.data!.docs;
+        if (requests.isEmpty) {
+          return Center(child: Text('لا توجد طلبات حالياً.'));
+        }
 
-          if (requests.isEmpty) {
-            return Center(child: Text('لا توجد طلبات حالياً.'));
-          }
-
-          return ListView.builder(
-            itemCount: requests.length,
-            itemBuilder: (context, index) {
-              final data = requests[index].data() as Map<String, dynamic>;
-              final requestId = requests[index].id;
+        return ListView.builder(
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final data = requests[index];
+            final requestId = data['id'] as String;
 
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -63,8 +57,7 @@ class AdminItemRequestsPage extends StatelessWidget {
               );
             },
           );
-        },
-      ),
+        })
     );
   }
 }

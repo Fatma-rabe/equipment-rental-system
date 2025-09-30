@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AdminEquipmentRequestsPage extends StatefulWidget {
@@ -9,29 +8,35 @@ class AdminEquipmentRequestsPage extends StatefulWidget {
 }
 
 class _AdminEquipmentRequestsPageState extends State<AdminEquipmentRequestsPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('طلبات تأجير المعدات')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('equipment_requests').orderBy('createdAt', descending: true).snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-          final requests = snapshot.data!.docs;
-
-          if (requests.isEmpty) {
-            return const Center(child: Text('لا توجد طلبات حالياً'));
+      body: Builder(builder: (context) {
+        // Placeholder static list without Firebase
+        final requests = [
+          {
+            'id': 'er1',
+            'userName': 'user1',
+            'equipmentName': 'حفار',
+            'rentalType': 'hour',
+            'quantity': 2,
+            'unitPrice': 200,
+            'totalPrice': 400,
+            'status': 'pending',
           }
+        ];
 
-          return ListView.builder(
-            itemCount: requests.length,
-            itemBuilder: (context, index) {
-              final doc = requests[index];
-              final data = doc.data() as Map<String, dynamic>;
-              final requestId = doc.id;
+        if (requests.isEmpty) {
+          return const Center(child: Text('لا توجد طلبات حالياً'));
+        }
+
+        return ListView.builder(
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final data = requests[index] as Map<String, dynamic>;
+            final requestId = data['id'] as String;
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -52,17 +57,8 @@ class _AdminEquipmentRequestsPageState extends State<AdminEquipmentRequestsPage>
                         children: [
                           ElevatedButton(
                             onPressed: () async {
-                              await _firestore.collection('equipment_requests').doc(requestId).update({
-                                'status': 'approved',
-                              });
-
-                              await _firestore.collection('financial_reports').add({
-                                'userId': data['userId'],
-                                'source': 'equipment',
-                                'amount': (data['totalPrice'] ?? 0),
-                                'createdAt': FieldValue.serverTimestamp(),
-                              });
-
+                              // Placeholder: simulate approve and add to financial report
+                              await Future.delayed(const Duration(milliseconds: 200));
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('تمت الموافقة على الطلب')),
                               );
@@ -73,7 +69,8 @@ class _AdminEquipmentRequestsPageState extends State<AdminEquipmentRequestsPage>
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                             onPressed: () async {
-                              await _firestore.collection('equipment_requests').doc(requestId).delete();
+                              // Placeholder: simulate delete
+                              await Future.delayed(const Duration(milliseconds: 200));
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('تم رفض الطلب وحذفه')),
                               );
@@ -88,8 +85,7 @@ class _AdminEquipmentRequestsPageState extends State<AdminEquipmentRequestsPage>
               );
             },
           );
-        },
-      ),
+      }),
     );
   }
 }

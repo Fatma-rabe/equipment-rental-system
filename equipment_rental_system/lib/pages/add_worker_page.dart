@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AddWorkerPage extends StatefulWidget {
@@ -18,14 +17,8 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
   void saveWorker() async {
     if (nameController.text.isEmpty || salaryController.text.isEmpty) return;
 
-    await FirebaseFirestore.instance.collection('workers').add({
-      'name': nameController.text.trim(),
-      'jobTitle': jobTitleController.text.trim(),
-      'phone': phoneController.text.trim(),
-      'dailySalary': double.tryParse(salaryController.text.trim()) ?? 0,
-      'notes': notesController.text.trim(),
-      'createdAt': Timestamp.now(),
-    });
+    // Placeholder: simulate save without Firebase
+    await Future.delayed(const Duration(milliseconds: 200));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تم إضافة العامل بنجاح')),

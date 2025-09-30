@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RequestItemPage extends StatefulWidget {
@@ -30,21 +28,8 @@ class _RequestItemPageState extends State<RequestItemPage> {
   void sendRequest() async {
     if (selectedItemId == null || quantityController.text.isEmpty) return;
 
-    final quantity = int.tryParse(quantityController.text.trim()) ?? 0;
-    final price = selectedItemData!['price'];
-    final name = selectedItemData!['name'];
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-
-    await FirebaseFirestore.instance.collection('item_requests').add({
-      'userId': userId,
-      'itemId': selectedItemId,
-      'itemName': name,
-      'quantity': quantity,
-      'unitPrice': price,
-      'totalPrice': totalPrice,
-      'status': 'pending',
-      'createdAt': Timestamp.now(),
-    });
+    // Placeholder: simulate sending request without Firebase
+    await Future.delayed(const Duration(milliseconds: 300));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تم إرسال الطلب بنجاح')),
@@ -67,34 +52,36 @@ class _RequestItemPageState extends State<RequestItemPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('items').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return CircularProgressIndicator();
+            // Placeholder dropdown without Firebase: use a static list
+            Builder(builder: (context) {
+              final items = [
+                {'id': 'a', 'name': 'صنف 1', 'price': 50},
+                {'id': 'b', 'name': 'صنف 2', 'price': 80},
+              ];
 
-                final items = snapshot.data!.docs;
-
-                return DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'اختر الصنف'),
-                  value: selectedItemId,
-                  items: items.map((item) {
-                    final data = item.data() as Map<String, dynamic>;
-                    return DropdownMenuItem<String>(
-                      value: item.id,
-                      child: Text(data['name']),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    final item = items.firstWhere((e) => e.id == value);
-                    setState(() {
-                      selectedItemId = value;
-                      selectedItemData = item.data() as Map<String, dynamic>;
-                      calculateTotal();
-                    });
-                  },
-                );
-              },
-            ),
+              return DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'اختر الصنف'),
+                value: selectedItemId,
+                items: items.map((item) {
+                  return DropdownMenuItem<String>(
+                    value: item['id'] as String,
+                    child: Text(item['name'].toString()),
+                    onTap: () {
+                      selectedItemData = {
+                        'name': item['name'],
+                        'price': item['price'],
+                      } as Map<String, dynamic>;
+                    },
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedItemId = value;
+                    calculateTotal();
+                  });
+                },
+              );
+            }),
             SizedBox(height: 16),
             TextField(
               controller: quantityController,

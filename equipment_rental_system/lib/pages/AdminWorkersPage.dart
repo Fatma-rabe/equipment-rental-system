@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'EditWorkerPage.dart';
 import 'add_worker_page.dart';
@@ -11,22 +10,22 @@ class AdminWorkersPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('إدارة العمال')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('workers').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+      body: Builder(builder: (context) {
+        // Placeholder static workers list without Firebase
+        final workers = [
+          {'id': 'w1', 'name': 'عامل 1', 'jobTitle': 'نجار', 'dailySalary': 100},
+          {'id': 'w2', 'name': 'عامل 2', 'jobTitle': 'حداد', 'dailySalary': 120},
+        ];
 
-          final workers = snapshot.data!.docs;
+        if (workers.isEmpty) {
+          return Center(child: Text('لا يوجد عمال حالياً'));
+        }
 
-          if (workers.isEmpty) {
-            return Center(child: Text('لا يوجد عمال حالياً'));
-          }
-
-          return ListView.builder(
-            itemCount: workers.length,
-            itemBuilder: (context, index) {
-              final worker = workers[index];
-              final data = worker.data() as Map<String, dynamic>;
+        return ListView.builder(
+          itemCount: workers.length,
+          itemBuilder: (context, index) {
+            final worker = workers[index];
+            final data = worker as Map<String, dynamic>;
 
               return ListTile(
                 title: Text(data['name'] ?? ''),
@@ -42,7 +41,7 @@ class AdminWorkersPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => EditWorkerPage(workerId: worker.id, workerData: {},),
+                            builder: (context) => EditWorkerPage(workerId: data['id'] as String, workerData: data),
                           ),
                         );
                       },
@@ -69,10 +68,8 @@ class AdminWorkersPage extends StatelessWidget {
                         );
 
                         if (confirm == true) {
-                          await FirebaseFirestore.instance
-                              .collection('workers')
-                              .doc(worker.id)
-                              .delete();
+                          // Placeholder: simulate delete
+                          await Future.delayed(const Duration(milliseconds: 200));
                         }
                       },
                     ),
@@ -81,8 +78,7 @@ class AdminWorkersPage extends StatelessWidget {
               );
             },
           );
-        },
-      ),
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(

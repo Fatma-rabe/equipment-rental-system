@@ -1,46 +1,45 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AdminWorkerRequestsPage extends StatelessWidget {
   const AdminWorkerRequestsPage({super.key});
 
   Future<void> approveRequest(String requestId) async {
-    await FirebaseFirestore.instance
-        .collection('worker_requests')
-        .doc(requestId)
-        .update({'status': 'approved'});
+    // Placeholder: simulate approve
+    await Future.delayed(const Duration(milliseconds: 200));
   }
 
   Future<void> rejectRequest(String requestId) async {
-    await FirebaseFirestore.instance
-        .collection('worker_requests')
-        .doc(requestId)
-        .delete(); // رفض = حذف
+    // Placeholder: simulate reject/delete
+    await Future.delayed(const Duration(milliseconds: 200));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('طلبات العمال')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('worker_requests')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
-
-          final requests = snapshot.data!.docs;
-
-          if (requests.isEmpty) {
-            return Center(child: Text('لا توجد طلبات حالياً'));
+      body: Builder(builder: (context) {
+        // Placeholder static list of worker requests
+        final requests = [
+          {
+            'id': 'wr1',
+            'workerName': 'عامل 1',
+            'days': 3,
+            'dailySalary': 100,
+            'total': 300,
+            'userName': 'user1',
+            'status': 'pending'
           }
+        ];
 
-          return ListView.builder(
-            itemCount: requests.length,
-            itemBuilder: (context, index) {
-              final data = requests[index].data() as Map<String, dynamic>;
-              final requestId = requests[index].id;
+        if (requests.isEmpty) {
+          return Center(child: Text('لا توجد طلبات حالياً'));
+        }
+
+        return ListView.builder(
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final data = requests[index] as Map<String, dynamic>;
+            final requestId = data['id'] as String;
 
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -80,8 +79,7 @@ class AdminWorkerRequestsPage extends StatelessWidget {
               );
             },
           );
-        },
-      ),
+      }),
     );
   }
 }

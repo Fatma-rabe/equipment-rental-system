@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AdminReplyPage extends StatefulWidget {
@@ -18,13 +17,8 @@ class _AdminReplyPageState extends State<AdminReplyPage> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    await FirebaseFirestore.instance.collection('messages').add({
-      'message': text,
-      'senderId': 'admin',
-      'receiverId': widget.userId,
-      'sender': 'admin',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+    // Placeholder: simulate sending message without Firebase
+    await Future.delayed(const Duration(milliseconds: 200));
 
     _controller.clear();
     if (mounted) {

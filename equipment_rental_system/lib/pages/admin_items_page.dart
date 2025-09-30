@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminItemsPage extends StatelessWidget {
   const AdminItemsPage({super.key});
@@ -8,76 +7,71 @@ class AdminItemsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("إدارة المخزن")),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('items').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Builder(builder: (context) {
+        // Placeholder static items list without Firebase
+        final items = [
+          {'id': 'i1', 'name': 'أسمنت', 'quantity': 10, 'price': 50},
+          {'id': 'i2', 'name': 'حديد', 'quantity': 5, 'price': 120},
+        ];
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("لا يوجد أصناف حالياً"));
-          }
+        if (items.isEmpty) {
+          return const Center(child: Text("لا يوجد أصناف حالياً"));
+        }
 
-          final items = snapshot.data!.docs;
+        return ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            final data = item;
+            return ListTile(
+              title: Text(data['name']?.toString() ?? ''),
+              subtitle: Text("الكمية: ${data['quantity']} - السعر: ${data['price']}/وحدة"),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => EditItemDialog(itemId: item['id'] as String, currentData: Map<String, dynamic>.from(data)),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("تأكيد الحذف"),
+                          content: const Text("هل أنت متأكد أنك تريد حذف هذا الصنف؟"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text("إلغاء"),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text("حذف"),
+                            ),
+                          ],
+                        ),
+                      );
 
-          return ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final data = item.data() as Map<String, dynamic>;
-              return ListTile(
-                title: Text(data['name'] ?? ''),
-                subtitle: Text("الكمية: ${data['quantity']} - السعر: ${data['price']}/وحدة"),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => EditItemDialog(itemId: item.id, currentData: data),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text("تأكيد الحذف"),
-                            content: const Text("هل أنت متأكد أنك تريد حذف هذا الصنف؟"),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text("إلغاء"),
-                              ),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text("حذف"),
-                              ),
-                            ],
-                          ),
-                        );
+                      if (confirm == true) {
+                        // Placeholder delete delay
+                        await Future.delayed(const Duration(milliseconds: 200));
+                      }
+                    },
+                  ),
+                ],
+              ),
 
-                        if (confirm == true) {
-                          await FirebaseFirestore.instance
-                              .collection('items')
-                              .doc(item.id)
-                              .delete();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-
-              );
-            },
-          );
-        },
-      ),
+            );
+          },
+        );
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -109,12 +103,8 @@ class _AddItemDialogState extends State<AddItemDialog> {
     final price = double.tryParse(priceController.text.trim()) ?? 0.0;
 
     if (name.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('items').add({
-        'name': name,
-        'quantity': quantity,
-        'price': price,
-        'createdAt': Timestamp.now(),
-      });
+      // Placeholder: simulate add
+      await Future.delayed(const Duration(milliseconds: 200));
       Navigator.pop(context);
     }
   }
@@ -174,11 +164,8 @@ class _EditItemDialogState extends State<EditItemDialog> {
   }
 
   void updateItem() async {
-    await FirebaseFirestore.instance.collection('items').doc(widget.itemId).update({
-      'name': nameController.text.trim(),
-      'quantity': int.tryParse(quantityController.text.trim()) ?? 0,
-      'price': double.tryParse(priceController.text.trim()) ?? 0.0,
-    });
+    // Placeholder: simulate update
+    await Future.delayed(const Duration(milliseconds: 200));
     Navigator.pop(context);
   }
 

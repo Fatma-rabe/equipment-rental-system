@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 enum RentalType { perHour, perMeter }
@@ -47,12 +46,8 @@ class _EditEquipmentPageState extends State<EditEquipmentPage> {
       return;
     }
 
-    await FirebaseFirestore.instance.collection('equipment').doc(widget.equipmentId).update({
-      'name': name,
-      'type': type,
-      'price': price,
-      'pricingType': _rentalType == RentalType.perHour ? 'hour' : 'meter',
-    });
+    // Placeholder: simulate update without Firebase
+    await Future.delayed(const Duration(milliseconds: 200));
 
     Navigator.pop(context);
   }

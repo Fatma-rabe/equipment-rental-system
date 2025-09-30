@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class WorkerRequestPage extends StatefulWidget {
@@ -38,20 +36,8 @@ class _WorkerRequestPageState extends State<WorkerRequestPage> {
   Future<void> _sendRequest() async {
     if (_selectedWorkerId == null || _selectedWorkerData == null || _days <= 0) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    await FirebaseFirestore.instance.collection('worker_requests').add({
-      'userId': user.uid,
-      'workerId': _selectedWorkerId,
-      'workerName': _selectedWorkerData!['name'],
-      'jobTitle': _selectedWorkerData!['jobTitle'],
-      'dailySalary': _selectedWorkerData!['dailySalary'],
-      'days': _days,
-      'totalPrice': _totalCost, // ✅ تم التعديل هنا
-      'status': 'pending',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    // Placeholder: simulate sending request without Firebase
+    await Future.delayed(const Duration(milliseconds: 300));
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,37 +61,39 @@ class _WorkerRequestPageState extends State<WorkerRequestPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('workers').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const CircularProgressIndicator();
+            // Placeholder dropdown without Firebase: replace with a static list
+            Builder(builder: (context) {
+              final workers = [
+                {'id': '1', 'name': 'عامل 1', 'jobTitle': 'نجار', 'dailySalary': 100},
+                {'id': '2', 'name': 'عامل 2', 'jobTitle': 'حداد', 'dailySalary': 120},
+              ];
 
-                final workers = snapshot.data!.docs;
-
-                return DropdownButtonFormField<String>(
-                  hint: const Text('اختر العامل'),
-                  value: _selectedWorkerId,
-                  items: workers.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return DropdownMenuItem(
-                      value: doc.id,
-                      child: Text('${data['name']} - ${data['jobTitle']}'),
-                      onTap: () {
-                        setState(() {
-                          _selectedWorkerData = data;
-                          _calculateTotal();
-                        });
-                      },
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedWorkerId = value;
-                    });
-                  },
-                );
-              },
-            ),
+              return DropdownButtonFormField<String>(
+                hint: const Text('اختر العامل'),
+                value: _selectedWorkerId,
+                items: workers.map((w) {
+                  return DropdownMenuItem(
+                    value: w['id'] as String,
+                    child: Text('${w['name']} - ${w['jobTitle']}'),
+                    onTap: () {
+                      setState(() {
+                        _selectedWorkerData = {
+                          'name': w['name'],
+                          'jobTitle': w['jobTitle'],
+                          'dailySalary': w['dailySalary'],
+                        } as Map<String, dynamic>;
+                        _calculateTotal();
+                      });
+                    },
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedWorkerId = value;
+                  });
+                },
+              );
+            }),
             const SizedBox(height: 16),
             TextField(
               controller: _daysController,

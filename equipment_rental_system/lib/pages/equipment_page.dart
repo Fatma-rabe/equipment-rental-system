@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'add_equipment_page.dart';
 import 'edit_equipment_page.dart';
@@ -23,18 +21,10 @@ class _EquipmentPageState extends State<EquipmentPage> {
   }
 
   Future<void> _checkAdminStatus() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() {
-        _isAdmin = false;
-        _isLoading = false;
-      });
-      return;
-    }
-
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    // Placeholder: no auth, treat as non-admin
+    await Future.delayed(const Duration(milliseconds: 100));
     setState(() {
-      _isAdmin = doc.data()?['role'] == 'admin';
+      _isAdmin = false;
       _isLoading = false;
     });
   }
@@ -59,7 +49,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
 
     if (confirmed == true) {
-      await FirebaseFirestore.instance.collection('equipment').doc(id).delete();
+      // Placeholder: simulate delete without Firebase
+      await Future.delayed(const Duration(milliseconds: 200));
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم حذف المعدة بنجاح')));
     }
   }
@@ -70,22 +61,22 @@ class _EquipmentPageState extends State<EquipmentPage> {
       appBar: AppBar(title: Text('قائمة المعدات')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('equipment').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+          : Builder(builder: (context) {
+        // Placeholder static list without Firebase
+        final equipmentList = [
+          {'id': 'e1', 'name': 'حفار', 'type': 'ثقيل', 'price': 200, 'unit': 'ساعة'},
+          {'id': 'e2', 'name': 'ونش', 'type': 'رفع', 'price': 150, 'unit': 'ساعة'},
+        ];
 
-          final equipmentList = snapshot.data!.docs;
+        if (equipmentList.isEmpty) {
+          return Center(child: Text('لا توجد معدات حالياً'));
+        }
 
-          if (equipmentList.isEmpty) {
-            return Center(child: Text('لا توجد معدات حالياً'));
-          }
-
-          return ListView.builder(
-            itemCount: equipmentList.length,
-            itemBuilder: (context, index) {
-              final data = equipmentList[index].data() as Map<String, dynamic>;
-              final id = equipmentList[index].id;
+        return ListView.builder(
+          itemCount: equipmentList.length,
+          itemBuilder: (context, index) {
+            final data = equipmentList[index] as Map<String, dynamic>;
+            final id = data['id'] as String;
 
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -148,8 +139,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
               );
             },
           );
-        },
-      ),
+        }),
       floatingActionButton: (!_isLoading && _isAdmin)
           ? FloatingActionButton(
         onPressed: () {

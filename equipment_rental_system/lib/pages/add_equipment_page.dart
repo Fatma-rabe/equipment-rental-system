@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AddEquipmentPage extends StatefulWidget {
@@ -35,13 +34,8 @@ class _AddEquipmentPageState extends State<AddEquipmentPage> {
     });
 
     try {
-      await FirebaseFirestore.instance.collection('equipment').add({
-        'name': name,
-        'type': type,
-        'price': price,
-        'pricingType': pricingType,
-        'createdAt': Timestamp.now(),
-      });
+      // Placeholder: simulate add without Firebase
+      await Future.delayed(const Duration(milliseconds: 200));
 
       Navigator.pop(context);
     } catch (e) {

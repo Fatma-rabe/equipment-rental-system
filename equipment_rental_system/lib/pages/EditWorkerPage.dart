@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class EditWorkerPage extends StatefulWidget {
@@ -31,11 +30,8 @@ class _EditWorkerPageState extends State<EditWorkerPage> {
 
     if (name.isEmpty || position.isEmpty || phone.isEmpty) return;
 
-    await FirebaseFirestore.instance.collection('workers').doc(widget.workerId).update({
-      'name': name,
-      'position': position,
-      'phone': phone,
-    });
+    // Placeholder: simulate update without Firebase
+    await Future.delayed(const Duration(milliseconds: 200));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تم تحديث بيانات العامل')),

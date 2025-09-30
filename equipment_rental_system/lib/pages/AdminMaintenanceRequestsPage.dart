@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AdminMaintenanceRequestsPage extends StatefulWidget {
@@ -11,21 +10,22 @@ class AdminMaintenanceRequestsPage extends StatefulWidget {
 
 class _AdminMaintenanceRequestsPageState
     extends State<AdminMaintenanceRequestsPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('طلبات الصيانة')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore
-            .collection('maintenance_requests')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
-          final requests = snapshot.data!.docs;
+      body: Builder(
+        builder: (context) {
+          // Placeholder static list of maintenance requests without Firebase
+          final requests = [
+            {
+              'id': 'mr1',
+              'userName': 'user1',
+              'description': 'صيانة معدة',
+              'status': 'pending',
+              'price': null,
+            }
+          ];
 
           if (requests.isEmpty) {
             return const Center(child: Text('لا توجد طلبات صيانة حالياً'));
@@ -34,15 +34,16 @@ class _AdminMaintenanceRequestsPageState
           return ListView.builder(
             itemCount: requests.length,
             itemBuilder: (context, index) {
-              final doc = requests[index];
-              final data = doc.data() as Map<String, dynamic>;
-              final requestId = doc.id;
-              final TextEditingController priceController = TextEditingController(
+              final data = requests[index] as Map<String, dynamic>;
+              final requestId = data['id'] as String;
+              final TextEditingController priceController =
+              TextEditingController(
                 text: data['price']?.toString() ?? '',
               );
 
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
@@ -65,39 +66,38 @@ class _AdminMaintenanceRequestsPageState
                         children: [
                           ElevatedButton(
                             onPressed: () async {
-                              final price = double.tryParse(priceController.text.trim());
+                              final price = double.tryParse(
+                                  priceController.text.trim());
                               if (price == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('يرجى إدخال سعر صالح')),
+                                  const SnackBar(
+                                      content:
+                                      Text('يرجى إدخال سعر صالح')),
                                 );
                                 return;
                               }
-
-                              await _firestore.collection('maintenance_requests').doc(requestId).update({
-                                'status': 'approved',
-                                'price': price,
-                              });
-
-                              await _firestore.collection('financial_reports').add({
-                                'userId': data['userId'],
-                                'source': 'maintenance',
-                                'amount': price,
-                                'createdAt': FieldValue.serverTimestamp(),
-                              });
-
+                              // Placeholder: simulate approve and add to financial report
+                              await Future.delayed(
+                                  const Duration(milliseconds: 200));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('تمت الموافقة على الطلب وإضافة السعر')),
+                                const SnackBar(
+                                    content: Text(
+                                        'تمت الموافقة على الطلب وإضافة السعر')),
                               );
                             },
                             child: const Text('موافقة'),
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red),
                             onPressed: () async {
-                              await _firestore.collection('maintenance_requests').doc(requestId).delete();
+                              // Placeholder: simulate delete
+                              await Future.delayed(
+                                  const Duration(milliseconds: 200));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('تم رفض الطلب وحذفه')),
+                                const SnackBar(
+                                    content: Text('تم رفض الطلب وحذفه')),
                               );
                             },
                             child: const Text('رفض'),

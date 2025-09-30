@@ -3,7 +3,7 @@ import 'package:equipment_rental_system/pages/user_maintenance_request_page.dart
 import 'package:flutter/material.dart';
 import 'WorkerRequestPage.dart';
 import 'user_item_request_page.dart';
-import 'package:equipment_rental_system/pages/equipment_page.dart'; // ← تأكد من وجود هذا الملف
+import 'package:equipment_rental_system/pages/equipment_page.dart';
 
 class UserDashboardPage extends StatelessWidget {
   const UserDashboardPage({super.key});

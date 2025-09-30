@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -26,84 +25,21 @@ class _AdminFinancialReportPageState extends State<AdminFinancialReportPage> {
   }
 
   Future<void> loadData() async {
-    try {
-      final usersSnapshot = await FirebaseFirestore.instance.collection('users').get();
-      final users = {for (var doc in usersSnapshot.docs) doc.id: doc.data()['name'] ?? 'مستخدم'};
-
-      final List<QuerySnapshot> collections = await Future.wait([
-        FirebaseFirestore.instance.collection('equipment_requests').get(),
-        FirebaseFirestore.instance.collection('item_requests').get(),
-        FirebaseFirestore.instance.collection('worker_requests').get(),
-        FirebaseFirestore.instance.collection('maintenance_requests').get(),
-      ]);
-
-      final equipment = collections[0];
-      final items = collections[1];
-      final workers = collections[2];
-      final maintenance = collections[3];
-
-      Map<String, Map<String, dynamic>> reports = {};
-      double totalToday = 0;
-      double totalMonth = 0;
-      Map<String, double> dailyMap = {};
-
-      void processRequest(QuerySnapshot snapshot, String type) {
-        for (var doc in snapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>;
-          final userId = data['userId'];
-          final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
-          final rawPrice = data['totalCost'] ?? data['totalPrice'] ?? data['price'];
-          final price = (rawPrice is num) ? rawPrice.toDouble() : 0.0;
-
-          if (userId == null || createdAt == null) continue;
-
-          final dateKey = DateFormat('yyyy-MM-dd').format(createdAt);
-          dailyMap[dateKey] = (dailyMap[dateKey] ?? 0) + price;
-
-          reports.putIfAbsent(userId, () {
-            return {
-              'name': users[userId] ?? 'غير معروف',
-              'equipment': 0.0,
-              'items': 0.0,
-              'workers': 0.0,
-              'maintenance': 0.0,
-              'total': 0.0,
-            };
-          });
-
-          reports[userId]![type] += price;
-          reports[userId]!['total'] += price;
-
-          if (isToday(createdAt)) totalToday += price;
-          if (isSameMonth(createdAt)) totalMonth += price;
-        }
-      }
-
-      processRequest(equipment, 'equipment');
-      processRequest(items, 'items');
-      processRequest(workers, 'workers');
-      processRequest(maintenance, 'maintenance');
-
-      setState(() {
-        userReports = reports;
-        totalDaily = totalToday;
-        totalMonthly = totalMonth;
-        dailyBreakdown = dailyMap;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل تحميل البيانات: $e')),
-      );
-    }
+    // Placeholder: simulate loading no data without Firebase
+    await Future.delayed(const Duration(milliseconds: 200));
+    setState(() {
+      userReports = {};
+      totalDaily = 0;
+      totalMonthly = 0;
+      dailyBreakdown = {};
+      isLoading = false;
+    });
   }
 
   bool isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year && date.month == now.month && date.day == now.day;
   }
-
   bool isSameMonth(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year && date.month == now.month;
