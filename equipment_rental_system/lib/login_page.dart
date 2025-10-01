@@ -1,18 +1,14 @@
-import 'dart:convert';
-import 'package:equipment_rental_system/pages/UserDashboardPage.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:equipment_rental_system/api_service.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'admin_dashboard.dart';
-
+import 'package:equipment_rental_system/pages/UserDashboardPage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
-
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -37,52 +33,30 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      final response = await http
-          .post(
-        Uri.parse('http://10.83.126.161:3000/login'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": email, "password": password}),
-      )
-          .timeout(const Duration(seconds: 73));
+      final result = await ApiService().login(email, password);
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        final token = decoded['token'];
-
-        if (token == null) {
-          setState(() {
-            errorMessage = decoded['message']?.toString() ??
-                "فشل تسجيل الدخول: لا يوجد توكن";
-          });
-          return;
-        }
-
-
-        Map<String, dynamic> payload = Jwt.parseJwt(token);
-        String role = payload['role']?.toLowerCase() ?? 'user';
-
-        if (role == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const UserDashboardPage()),
-          );
-        }
-      } else {
-        String backendMsg = '';
-        try {
-          final m = jsonDecode(response.body);
-          backendMsg = (m['message'] ?? m['error'] ?? '').toString();
-        } catch (_) {}
+      final token = result['token'];
+      if (token == null) {
         setState(() {
-          errorMessage = backendMsg.isNotEmpty
-              ? backendMsg
-              : "حدث خطأ: ${response.statusCode}";
+          errorMessage = result['message']?.toString() ??
+              "فشل تسجيل الدخول: لا يوجد توكن";
         });
+        return;
+      }
+
+      Map<String, dynamic> payload = Jwt.parseJwt(token);
+      String role = payload['role']?.toLowerCase() ?? 'user';
+
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const UserDashboardPage()),
+        );
       }
     } catch (e) {
       setState(() {
