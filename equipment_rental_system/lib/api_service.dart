@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:3000',
+    defaultValue: 'http://localhost:3000',
   );
 
   Future<Map<String, dynamic>> getUsers() async {

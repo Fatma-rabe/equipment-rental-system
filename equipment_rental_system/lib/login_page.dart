@@ -3,6 +3,7 @@ import 'package:equipment_rental_system/api_service.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'admin_dashboard.dart';
 import 'package:equipment_rental_system/pages/UserDashboardPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,6 +45,10 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      // Save token for socket authentication
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("token", token);
+
       Map<String, dynamic> payload = Jwt.parseJwt(token);
       String role = payload['role']?.toLowerCase() ?? 'user';
 
@@ -65,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
     } finally {
       setState(() => isLoading = false);
     }
+
   }
 
   @override

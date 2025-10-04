@@ -22,7 +22,7 @@ class UserDashboardPage extends StatelessWidget {
           mainAxisSpacing: 16,
           children: [
             DashboardCard(
-              title: "طلب صنف من المخزن",
+              title: " إضافة صنف من المخزن",
               icon: Icons.add_shopping_cart,
               onTap: () {
                 Navigator.push(
@@ -32,7 +32,7 @@ class UserDashboardPage extends StatelessWidget {
               },
             ),
             DashboardCard(
-              title: "طلب صيانة",
+              title: "إضافة صيانة",
               icon: Icons.build_circle,
               onTap: () {
                 Navigator.push(
@@ -53,7 +53,7 @@ class UserDashboardPage extends StatelessWidget {
             ),
 
             DashboardCard(
-              title: "طلب معدة",
+              title: "إضافة معدة",
               icon: Icons.build,
               onTap: () {
                 Navigator.push(
@@ -63,7 +63,7 @@ class UserDashboardPage extends StatelessWidget {
               },
             ),
             DashboardCard(
-              title: "طلب عمال",
+              title: "إضافة عمال",
               icon: Icons.people_alt,
               onTap: () {
                 Navigator.push(

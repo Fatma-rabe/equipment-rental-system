@@ -27,6 +27,12 @@ dependencies:
   # HTTP package for API requests
   http: ^0.13.6
 
+  # socket
+  socket_io_client: ^2.0.0
+
+  #shared_preferences
+  shared_preferences: ^2.2.3
+
   #jwt decode
   jwt_decode: ^0.3.1
 dev_dependencies:

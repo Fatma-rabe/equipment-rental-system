@@ -6,9 +6,8 @@ import 'package:equipment_rental_system/pages/AdminWorkersPage.dart';
 import 'package:equipment_rental_system/pages/admin_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:equipment_rental_system/pages/admin_items_page.dart';
-import 'package:equipment_rental_system/pages/equipment_page.dart'; // ← صفحة المعدات
 import 'package:equipment_rental_system/pages/admin_item_requests_page.dart';
-
+import 'package:equipment_rental_system/pages/add_equipment_page.dart';
 class AdminDashboardPage extends StatelessWidget {
   const AdminDashboardPage({super.key});
 
@@ -31,7 +30,7 @@ class AdminDashboardPage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const EquipmentPage()),
+                  MaterialPageRoute(builder: (context) => const AddEquipmentPage()),
                 );
               },
             ),
