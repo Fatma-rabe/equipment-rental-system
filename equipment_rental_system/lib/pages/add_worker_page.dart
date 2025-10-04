@@ -17,14 +17,16 @@ class _AddWorkerPageState extends State<AddWorkerPage> {
   void saveWorker() async {
     if (nameController.text.isEmpty || salaryController.text.isEmpty) return;
 
-    // Placeholder: simulate save without Firebase
-    await Future.delayed(const Duration(milliseconds: 200));
+    final worker = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'name': nameController.text.trim(),
+      'jobTitle': jobTitleController.text.trim(),
+      'phone': phoneController.text.trim(),
+      'dailySalary': int.tryParse(salaryController.text.trim()) ?? 0,
+      'notes': notesController.text.trim(),
+    };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم إضافة العامل بنجاح')),
-    );
-
-    Navigator.pop(context);
+    Navigator.pop(context, worker);
   }
 
   @override

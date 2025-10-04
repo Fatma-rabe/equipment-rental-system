@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_equipment_page.dart';
 import 'edit_equipment_page.dart';
-import 'equipment_rental_request_page.dart'; // تأكد من وجود هذا الملف
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({Key? key}) : super(key: key);
@@ -11,8 +10,13 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
-  bool _isAdmin = false;
+  bool _isAdmin = true; // تعديل حسب الحالة الحقيقية للـ admin
   bool _isLoading = true;
+
+  final List<Map<String, dynamic>> _equipment = [
+    {'id': 'e1', 'name': 'حفار', 'type': 'ثقيل', 'price': 200, 'unit': 'ساعة', 'pricingType': 'hour'},
+    {'id': 'e2', 'name': 'ونش', 'type': 'رفع', 'price': 150, 'unit': 'ساعة', 'pricingType': 'hour'},
+  ];
 
   @override
   void initState() {
@@ -21,27 +25,54 @@ class _EquipmentPageState extends State<EquipmentPage> {
   }
 
   Future<void> _checkAdminStatus() async {
-    // Placeholder: no auth, treat as non-admin
+    // هنا ممكن تجيب الحالة الحقيقية للـ admin من SharedPreferences أو API
     await Future.delayed(const Duration(milliseconds: 100));
     setState(() {
-      _isAdmin = false;
+      _isAdmin = true; // مثال لتفعيل الـ admin controls
       _isLoading = false;
     });
   }
 
-  void deleteEquipment(BuildContext context, String id) async {
+  Future<void> _addEquipment() async {
+    final newEq = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddEquipmentPage()),
+    );
+    if (newEq != null) {
+      setState(() => _equipment.add(newEq));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تمت إضافة المعدة بنجاح')),
+      );
+    }
+  }
+
+  Future<void> _editEquipment(Map<String, dynamic> current) async {
+    final updated = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => EditEquipmentPage(
+        equipmentId: current['id'] as String,
+        currentData: current,
+      )),
+    );
+    if (updated != null) {
+      final idx = _equipment.indexWhere((e) => e['id'] == updated['id']);
+      if (idx != -1) setState(() => _equipment[idx] = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تعديل المعدة بنجاح')),
+      );
+    }
+  }
+
+  Future<void> _deleteEquipment(String id) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('تأكيد الحذف'),
-        content: Text('هل أنت متأكد أنك تريد حذف هذه المعدة؟'),
+      builder: (_) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: const Text('هل أنت متأكد أنك تريد حذف هذه المعدة؟'),
         actions: [
+          TextButton(child: const Text('إلغاء'), onPressed: () => Navigator.pop(context, false)),
           TextButton(
-            child: Text('إلغاء'),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          TextButton(
-            child: Text('حذف', style: TextStyle(color: Colors.red)),
+            child: const Text('حذف', style: TextStyle(color: Colors.red)),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -49,108 +80,67 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
 
     if (confirmed == true) {
-      // Placeholder: simulate delete without Firebase
-      await Future.delayed(const Duration(milliseconds: 200));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم حذف المعدة بنجاح')));
+      setState(() => _equipment.removeWhere((e) => e['id'] == id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم حذف المعدة بنجاح')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('قائمة المعدات')),
+      appBar: AppBar(title: const Text('قائمة المعدات')),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Builder(builder: (context) {
-        // Placeholder static list without Firebase
-        final equipmentList = [
-          {'id': 'e1', 'name': 'حفار', 'type': 'ثقيل', 'price': 200, 'unit': 'ساعة'},
-          {'id': 'e2', 'name': 'ونش', 'type': 'رفع', 'price': 150, 'unit': 'ساعة'},
-        ];
+          ? const Center(child: CircularProgressIndicator())
+          : _equipment.isEmpty
+          ? const Center(child: Text('لا توجد معدات حالياً'))
+          : ListView.builder(
+        itemCount: _equipment.length,
+        itemBuilder: (context, index) {
+          final data = _equipment[index];
+          final id = data['id'] as String;
 
-        if (equipmentList.isEmpty) {
-          return Center(child: Text('لا توجد معدات حالياً'));
-        }
-
-        return ListView.builder(
-          itemCount: equipmentList.length,
-          itemBuilder: (context, index) {
-            final data = equipmentList[index] as Map<String, dynamic>;
-            final id = data['id'] as String;
-
-              return Card(
-                margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(data['name'] ?? '', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 6),
-                      Text('النوع: ${data['type'] ?? ''}'),
-                      Text('السعر: ${data['price'] ?? ''}'),
-                      Text('الوحدة: ${data['unit'] ?? ''}'),
-                      SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: _isAdmin
-                            ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditEquipmentPage(
-                                      equipmentId: id,
-                                      currentData: data,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => deleteEquipment(context, id),
-                            ),
-                          ],
-                        )
-                            : ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EquipmentRentalRequestPage(
-                                  equipmentId: id,
-                                  equipmentData: data,
-                                ),
-                              ),
-                            );
-                          },
-                          icon: Icon(Icons.request_page),
-                          label: Text('طلب الإيجار'),
-                        ),
-                      ),
-                    ],
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data['name'] ?? '',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
-              );
-            },
-          );
-        }),
-      floatingActionButton: (!_isLoading && _isAdmin)
-          ? FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddEquipmentPage()),
+                  const SizedBox(height: 6),
+                  if (_isAdmin)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _editEquipment(data),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteEquipment(id),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
           );
         },
-        child: Icon(Icons.add),
+      ),
+      floatingActionButton: !_isLoading && _isAdmin
+          ? FloatingActionButton(
+        onPressed: _addEquipment,
+        child: const Icon(Icons.add),
       )
           : null,
     );
   }
 }
+
+

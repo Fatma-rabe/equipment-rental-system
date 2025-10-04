@@ -30,14 +30,16 @@ class _EditWorkerPageState extends State<EditWorkerPage> {
 
     if (name.isEmpty || position.isEmpty || phone.isEmpty) return;
 
-    // Placeholder: simulate update without Firebase
-    await Future.delayed(const Duration(milliseconds: 200));
+    final updated = {
+      ...widget.workerData,
+      'id': widget.workerId,
+      'name': name,
+      'jobTitle': position, // keep compatibility with AdminWorkersPage subtitle
+      'position': position,
+      'phone': phone,
+    };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تحديث بيانات العامل')),
-    );
-
-    Navigator.pop(context);
+    Navigator.pop(context, updated);
   }
 
   @override

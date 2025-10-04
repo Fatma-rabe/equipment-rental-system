@@ -46,10 +46,16 @@ class _EditEquipmentPageState extends State<EditEquipmentPage> {
       return;
     }
 
-    // Placeholder: simulate update without Firebase
-    await Future.delayed(const Duration(milliseconds: 200));
+    final updated = {
+      'id': widget.equipmentId,
+      'name': name,
+      'type': type,
+      'price': price,
+      'unit': _rentalType == RentalType.perHour ? 'ساعة' : 'متر',
+      'pricingType': _rentalType == RentalType.perHour ? 'hour' : 'meter',
+    };
 
-    Navigator.pop(context);
+    Navigator.pop(context, updated);
   }
 
   @override

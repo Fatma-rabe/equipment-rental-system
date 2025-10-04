@@ -43,4 +43,62 @@ class ApiService {
       throw Exception("Unable to connect to server: $e");
     }
   }
+
+  // Equipment CRUD
+  Future<List<dynamic>> getEquipment() async {
+    final resp = await http.get(Uri.parse("$baseUrl/equipment"));
+    if (resp.statusCode == 200) return jsonDecode(resp.body) as List<dynamic>;
+    throw Exception(jsonDecode(resp.body)['message'] ?? 'Failed to fetch equipment');
+  }
+
+  Future<Map<String, dynamic>> createEquipment(Map<String, dynamic> data) async {
+    final resp = await http.post(
+      Uri.parse("$baseUrl/equipment"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(data),
+    );
+    if (resp.statusCode == 201 || resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    throw Exception(jsonDecode(resp.body)['message'] ?? 'Failed to create equipment');
+  }
+
+  Future<Map<String, dynamic>> updateEquipment(String id, Map<String, dynamic> data) async {
+    final resp = await http.put(
+      Uri.parse("$baseUrl/equipment/$id"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(data),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    throw Exception(jsonDecode(resp.body)['message'] ?? 'Failed to update equipment');
+  }
+
+  Future<void> deleteEquipment(String id) async {
+    final resp = await http.delete(Uri.parse("$baseUrl/equipment/$id"));
+    if (resp.statusCode != 204 && resp.statusCode != 200) {
+      throw Exception(jsonDecode(resp.body)['message'] ?? 'Failed to delete equipment');
+    }
+  }
+
+  // Maintenance requests actions
+  Future<Map<String, dynamic>> approveMaintenance(String id, double price) async {
+    final resp = await http.patch(
+      Uri.parse("$baseUrl/maintenance-requests/$id/approve"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"price": price}),
+    );
+    if (resp.statusCode == 200) return jsonDecode(resp.body) as Map<String, dynamic>;
+    throw Exception(jsonDecode(resp.body)['message'] ?? 'Failed to approve maintenance');
+  }
+
+  Future<void> rejectMaintenance(String id) async {
+    final resp = await http.patch(
+      Uri.parse("$baseUrl/maintenance-requests/$id/reject"),
+    );
+    if (resp.statusCode != 204 && resp.statusCode != 200) {
+      throw Exception(jsonDecode(resp.body)['message'] ?? 'Failed to reject maintenance');
+    }
+  }
 }
