@@ -48,17 +48,13 @@ class _AddEquipmentPageState extends State<AddEquipmentPage> {
       builder: (_) => const _AddEquipmentDialog(),
     );
     if (newEq != null) {
-      // Optimistic UI
-      setState(() => _equipment.add(newEq));
       try {
-        final created = await _api.createEquipment(newEq);
-        final idx = _equipment.indexWhere((e) => e['id'] == newEq['id']);
-        if (idx != -1) setState(() => _equipment[idx] = created);
+        await _api.createEquipment(newEq);
+        await _loadEquipment();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('تمت إضافة المعدة بنجاح')),
         );
       } catch (e) {
-        setState(() => _equipment.removeWhere((e) => e['id'] == newEq['id']));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('فشل إضافة المعدة: $e')),
         );
@@ -71,24 +67,19 @@ class _AddEquipmentPageState extends State<AddEquipmentPage> {
       context,
       MaterialPageRoute(
         builder: (_) => EditEquipmentPage(
-          equipmentId: current['id'] as String,
+          equipmentId: (current['id'] ?? current['_id']) as String,
           currentData: current,
         ),
       ),
     );
     if (updated != null) {
-      // Optimistic UI
-      final idx = _equipment.indexWhere((e) => e['id'] == updated['id']);
-      if (idx != -1) setState(() => _equipment[idx] = updated);
       try {
-        final saved = await _api.updateEquipment(updated['id'] as String, updated);
-        final i2 = _equipment.indexWhere((e) => e['id'] == saved['id']);
-        if (i2 != -1) setState(() => _equipment[i2] = saved);
+        await _api.updateEquipment((updated['id'] ?? updated['_id']) as String, updated);
+        await _loadEquipment();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('تم تعديل المعدة بنجاح')),
         );
       } catch (e) {
-        // reload to avoid stale state
         await _loadEquipment();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('فشل تعديل المعدة: $e')),
@@ -110,18 +101,11 @@ class _AddEquipmentPageState extends State<AddEquipmentPage> {
       ),
     );
     if (confirmed == true) {
-      // Optimistic remove
-      final removedIndex = _equipment.indexWhere((e) => e['id'] == id);
-      if (removedIndex == -1) return;
-      final removed = _equipment.removeAt(removedIndex);
-      setState(() {});
       try {
         await _api.deleteEquipment(id);
+        await _loadEquipment();
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف المعدة بنجاح')));
       } catch (e) {
-        // rollback
-        _equipment.insert(removedIndex, removed);
-        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل حذف المعدة: $e')));
       }
     }
@@ -143,7 +127,7 @@ class _AddEquipmentPageState extends State<AddEquipmentPage> {
                       final e = _equipment[index];
                       return ListTile(
                         title: Text(e['name']?.toString() ?? ''),
-                        subtitle: Text('النوع: ${e['type']} • السعر: ${e['price']} • الوحدة: ${e['unit']}'),
+                        subtitle: Text('النوع: ${e['category'] ?? e['type']} • السعر: ${e['price']}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -154,7 +138,7 @@ class _AddEquipmentPageState extends State<AddEquipmentPage> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteEquipment(e['id'] as String),
+                              onPressed: () => _deleteEquipment((e['id'] ?? e['_id']).toString()),
                               tooltip: 'حذف',
                             ),
                           ],

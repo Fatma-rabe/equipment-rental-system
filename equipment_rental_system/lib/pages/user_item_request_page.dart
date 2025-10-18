@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:equipment_rental_system/api_service.dart';
 
 class RequestItemPage extends StatefulWidget {
   const RequestItemPage({super.key});
@@ -12,6 +13,33 @@ class _RequestItemPageState extends State<RequestItemPage> {
   Map<String, dynamic>? selectedItemData;
   final quantityController = TextEditingController();
   double totalPrice = 0;
+  bool _loading = true;
+  String? _error;
+  final List<Map<String, dynamic>> _items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  Future<void> _loadItems() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final list = await ApiService().listWarehouseItems();
+      _items
+        ..clear()
+        ..addAll(list.cast<Map<String, dynamic>>().map((e) => {
+          'id': (e['_id'] ?? e['id']).toString(),
+          'name': e['Itemname'] ?? e['name'] ?? '-',
+          'price': (e['price'] as num?)?.toDouble() ?? 0.0,
+        }));
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   void calculateTotal() {
     if (selectedItemData != null && quantityController.text.isNotEmpty) {
@@ -26,16 +54,24 @@ class _RequestItemPageState extends State<RequestItemPage> {
   }
 
   void sendRequest() async {
-    if (selectedItemId == null || quantityController.text.isEmpty) return;
-
-    // Placeholder: simulate sending request without Firebase
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم إرسال الطلب بنجاح')),
-    );
-
-    Navigator.pop(context);
+    if (selectedItemId == null || quantityController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى اختيار الصنف والكمية')));
+      return;
+    }
+    final qty = int.tryParse(quantityController.text) ?? 0;
+    if (qty <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('كمية غير صحيحة')));
+      return;
+    }
+    try {
+      await ApiService().requestWarehouseItem(itemId: selectedItemId!, quantity: qty);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال الطلب بنجاح')));
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل إرسال الطلب: $e')));
+    }
   }
 
   @override
@@ -50,38 +86,31 @@ class _RequestItemPageState extends State<RequestItemPage> {
       appBar: AppBar(title: Text('طلب صنف من المخزن')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!))
+                : Column(
           children: [
-            // Placeholder dropdown without Firebase: use a static list
-            Builder(builder: (context) {
-              final items = [
-                {'id': 'a', 'name': 'صنف 1', 'price': 50},
-                {'id': 'b', 'name': 'صنف 2', 'price': 80},
-              ];
-
-              return DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'اختر الصنف'),
-                value: selectedItemId,
-                items: items.map((item) {
-                  return DropdownMenuItem<String>(
-                    value: item['id'] as String,
-                    child: Text(item['name'].toString()),
-                    onTap: () {
-                      selectedItemData = {
-                        'name': item['name'],
-                        'price': item['price'],
-                      } as Map<String, dynamic>;
-                    },
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedItemId = value;
-                    calculateTotal();
-                  });
-                },
-              );
-            }),
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(labelText: 'اختر الصنف'),
+              value: selectedItemId,
+              items: _items.map((item) {
+                return DropdownMenuItem<String>(
+                  value: item['id'] as String,
+                  child: Text(item['name'].toString()),
+                  onTap: () {
+                    selectedItemData = item;
+                  },
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedItemId = value;
+                  calculateTotal();
+                });
+              },
+            ),
             SizedBox(height: 16),
             TextField(
               controller: quantityController,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:equipment_rental_system/api_service.dart';
 
 class AdminMaintenanceRequestsPage extends StatefulWidget {
   const AdminMaintenanceRequestsPage({super.key});
@@ -10,27 +11,17 @@ class AdminMaintenanceRequestsPage extends StatefulWidget {
 
 class _AdminMaintenanceRequestsPageState
     extends State<AdminMaintenanceRequestsPage> {
-  final List<Map<String, dynamic>> _requests = [
-    {
-      'id': 'mr1',
-      'userName': 'user1',
-      'description': 'صيانة معدة',
-      'status': 'pending',
-      'price': null,
-    }
-  ];
+  final ApiService _api = ApiService();
+  final List<Map<String, dynamic>> _requests = [];
+  bool _loading = true;
+  String? _error;
 
   final Map<String, TextEditingController> _controllers = {};
 
   @override
   void initState() {
     super.initState();
-    // initialize controllers for existing requests
-    for (var req in _requests) {
-      _controllers[req['id']] = TextEditingController(
-        text: req['price']?.toString() ?? '',
-      );
-    }
+    _load();
   }
 
   @override
@@ -42,7 +33,36 @@ class _AdminMaintenanceRequestsPageState
     super.dispose();
   }
 
-  void _approve(String id) {
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final list = await _api.listMaintenanceRequestsAdmin();
+      _requests
+        ..clear()
+        ..addAll(list.cast<Map<String, dynamic>>().map((e) => {
+              'id': (e['_id'] ?? e['id']).toString(),
+              'userName': e['user']?['name'] ?? '-',
+              'description': e['name'] ?? e['message'] ?? '-',
+              'status': e['status'] ?? 'pending',
+              'price': e['amount'],
+            }));
+      // rebuild controllers
+      for (var req in _requests) {
+        _controllers[req['id']] = TextEditingController(
+          text: req['price']?.toString() ?? '',
+        );
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _approve(String id) async {
     final controller = _controllers[id];
     if (controller == null) return;
 
@@ -55,41 +75,46 @@ class _AdminMaintenanceRequestsPageState
       return;
     }
 
-    final idx = _requests.indexWhere((r) => r['id'] == id);
-    if (idx != -1) {
-      setState(() {
-        _requests[idx]['status'] = 'accepted';
-        _requests[idx]['price'] = price;
-      });
-
-      ScaffoldMessenger.of(context).removeCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تمت الموافقة على طلب الصيانة')),
-      );
-
-      // TODO: send approval to backend
+    try {
+      await _api.approveMaintenanceRequest(id, price);
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تمت الموافقة على طلب الصيانة')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الموافقة: $e')));
+      }
     }
   }
 
-  void _reject(String id) {
-    setState(() {
-      _requests.removeWhere((r) => r['id'] == id);
-      _controllers.remove(id)?.dispose();
-    });
-
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم رفض الطلب وحذفه')),
-    );
-
-    // TODO: send rejection to backend
+  Future<void> _reject(String id) async {
+    try {
+      await _api.rejectMaintenanceRequest(id);
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم رفض الطلب')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الرفض: $e')));
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('طلبات الصيانة')),
-      body: _requests.isEmpty
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!))
+              : _requests.isEmpty
           ? const Center(child: Text('لا توجد طلبات صيانة حالياً'))
           : ListView.builder(
         itemCount: _requests.length,

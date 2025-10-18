@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:equipment_rental_system/api_service.dart';
 
 class MaintenanceRequestPage extends StatefulWidget {
   const MaintenanceRequestPage({super.key});
@@ -16,13 +17,18 @@ class _MaintenanceRequestPageState extends State<MaintenanceRequestPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("يرجى إدخال كل البيانات")));
       return;
     }
-
-    // Placeholder: simulate sending request without Firebase
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("تم إرسال طلب الصيانة")));
-
-    Navigator.pop(context);
+    try {
+      await ApiService().createMaintenanceRequest(
+        name: equipmentController.text.trim(),
+        message: descriptionController.text.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("تم إرسال طلب الصيانة")));
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل إرسال الطلب: $e')));
+    }
   }
 
   @override

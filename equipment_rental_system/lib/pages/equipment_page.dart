@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decode/jwt_decode.dart';
+import 'package:equipment_rental_system/api_service.dart';
 import 'add_equipment_page.dart';
 import 'edit_equipment_page.dart';
+import 'equipment_rental_request_page.dart';
 
 class EquipmentPage extends StatefulWidget {
   const EquipmentPage({Key? key}) : super(key: key);
@@ -10,13 +14,11 @@ class EquipmentPage extends StatefulWidget {
 }
 
 class _EquipmentPageState extends State<EquipmentPage> {
-  bool _isAdmin = true; // تعديل حسب الحالة الحقيقية للـ admin
+  bool _isAdmin = false;
   bool _isLoading = true;
-
-  final List<Map<String, dynamic>> _equipment = [
-    {'id': 'e1', 'name': 'حفار', 'type': 'ثقيل', 'price': 200, 'unit': 'ساعة', 'pricingType': 'hour'},
-    {'id': 'e2', 'name': 'ونش', 'type': 'رفع', 'price': 150, 'unit': 'ساعة', 'pricingType': 'hour'},
-  ];
+  String? _error;
+  final ApiService _api = ApiService();
+  final List<Map<String, dynamic>> _equipment = [];
 
   @override
   void initState() {
@@ -25,12 +27,44 @@ class _EquipmentPageState extends State<EquipmentPage> {
   }
 
   Future<void> _checkAdminStatus() async {
-    // هنا ممكن تجيب الحالة الحقيقية للـ admin من SharedPreferences أو API
-    await Future.delayed(const Duration(milliseconds: 100));
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    String role = 'user';
+    if (token != null) {
+      try {
+        final payload = Jwt.parseJwt(token);
+        role = (payload['role']?.toString().toLowerCase() ?? 'user');
+      } catch (_) {}
+    }
     setState(() {
-      _isAdmin = true; // مثال لتفعيل الـ admin controls
-      _isLoading = false;
+      _isAdmin = role == 'admin';
     });
+    await _loadEquipment();
+  }
+
+  Future<void> _loadEquipment() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final list = await _api.getEquipment();
+      _equipment
+        ..clear()
+        ..addAll(list.map<Map<String, dynamic>>((e) => {
+              'id': e['_id'] ?? e['id'],
+              'name': e['name'],
+              'type': e['category'] ?? e['type'],
+              'price': e['price'],
+              // default to hour as backend has only price
+              'unit': 'ساعة',
+              'pricingType': 'hour',
+            }));
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _addEquipment() async {
@@ -38,12 +72,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
       context,
       MaterialPageRoute(builder: (_) => const AddEquipmentPage()),
     );
-    if (newEq != null) {
-      setState(() => _equipment.add(newEq));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تمت إضافة المعدة بنجاح')),
-      );
-    }
+    if (newEq != null) await _loadEquipment();
   }
 
   Future<void> _editEquipment(Map<String, dynamic> current) async {
@@ -54,13 +83,7 @@ class _EquipmentPageState extends State<EquipmentPage> {
         currentData: current,
       )),
     );
-    if (updated != null) {
-      final idx = _equipment.indexWhere((e) => e['id'] == updated['id']);
-      if (idx != -1) setState(() => _equipment[idx] = updated);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم تعديل المعدة بنجاح')),
-      );
-    }
+    if (updated != null) await _loadEquipment();
   }
 
   Future<void> _deleteEquipment(String id) async {
@@ -80,10 +103,21 @@ class _EquipmentPageState extends State<EquipmentPage> {
     );
 
     if (confirmed == true) {
-      setState(() => _equipment.removeWhere((e) => e['id'] == id));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حذف المعدة بنجاح')),
-      );
+      try {
+        await _api.deleteEquipment(id);
+        await _loadEquipment();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم حذف المعدة بنجاح')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('فشل حذف المعدة: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -93,9 +127,11 @@ class _EquipmentPageState extends State<EquipmentPage> {
       appBar: AppBar(title: const Text('قائمة المعدات')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _equipment.isEmpty
-          ? const Center(child: Text('لا توجد معدات حالياً'))
-          : ListView.builder(
+          : _error != null
+              ? Center(child: Text(_error!))
+              : _equipment.isEmpty
+                  ? const Center(child: Text('لا توجد معدات حالياً'))
+                  : ListView.builder(
         itemCount: _equipment.length,
         itemBuilder: (context, index) {
           final data = _equipment[index];
@@ -113,6 +149,8 @@ class _EquipmentPageState extends State<EquipmentPage> {
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
+                  Text('النوع: ${data['type'] ?? ''} • السعر: ${data['price']}'),
+                  const SizedBox(height: 8),
                   if (_isAdmin)
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -126,6 +164,25 @@ class _EquipmentPageState extends State<EquipmentPage> {
                           onPressed: () => _deleteEquipment(id),
                         ),
                       ],
+                    ),
+                  if (!_isAdmin)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EquipmentRentalRequestPage(
+                                equipmentId: id,
+                                equipmentData: data,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.shopping_cart_checkout),
+                        label: const Text('طلب تأجير'),
+                      ),
                     ),
                 ],
               ),

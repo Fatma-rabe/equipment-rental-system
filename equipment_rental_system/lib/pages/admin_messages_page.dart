@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'admin_reply_page.dart';
+import 'admin_direct_chat_page.dart';
+
 
 class AdminMessagesPage extends StatelessWidget {
   final String userId;
@@ -33,7 +34,7 @@ class AdminMessagesPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AdminReplyPage(
+                    builder: (_) => AdminDirectChatPage(
                       userId: userId,
                       userEmail: userEmail,
                     ),

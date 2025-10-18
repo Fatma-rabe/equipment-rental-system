@@ -4,6 +4,7 @@ import 'package:equipment_rental_system/pages/AdminMaintenanceRequestsPage.dart'
 import 'package:equipment_rental_system/pages/AdminWorkerRequestsPage.dart';
 import 'package:equipment_rental_system/pages/AdminWorkersPage.dart';
 import 'package:equipment_rental_system/pages/admin_chat_page.dart';
+import 'package:equipment_rental_system/pages/admin_user_management_page.dart';
 import 'package:flutter/material.dart';
 import 'package:equipment_rental_system/pages/admin_items_page.dart';
 import 'package:equipment_rental_system/pages/admin_item_requests_page.dart';
@@ -84,6 +85,16 @@ class AdminDashboardPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AdminFinancialReportPage()),
+                );
+              },
+            ),
+            DashboardCard(
+              title: "إدارة المستخدم",
+              icon: Icons.account_circle_rounded,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminUserManagementPage()),
                 );
               },
             ),

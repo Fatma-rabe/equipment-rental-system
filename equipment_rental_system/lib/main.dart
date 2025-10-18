@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'admin_dashboard.dart';
 import 'login_page.dart';
+import 'package:equipment_rental_system/api_service.dart';
 
 
 void main() {
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
+      navigatorKey: ApiService.navigatorKey,
       home: LoginPage(),
       routes: {
         '/dashboard': (context) => DashboardPage(),
